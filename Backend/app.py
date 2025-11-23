@@ -278,11 +278,11 @@ def get_statistics(current_admin):
 # Serve frontend files
 @app.route('/')
 def serve_frontend():
-    return send_from_directory('../frontend', 'index.html')
+    return send_from_directory('../Frontend', 'index.html')
 
 @app.route('/<path:path>')
 def serve_static(path):
-    return send_from_directory('../frontend', path)
+    return send_from_directory('../Frontend', path)
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
