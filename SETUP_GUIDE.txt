@@ -1,0 +1,101 @@
+========================================
+CAR RENTAL SYSTEM - QUICK SETUP GUIDE
+========================================
+
+PREREQUISITES:
+1. Python 3.8 or higher installed
+2. MongoDB installed and running
+3. Modern web browser (Chrome, Firefox, Edge, or Safari)
+
+SETUP STEPS:
+
+1. START MONGODB
+   - Open a command prompt/terminal
+   - Run: mongod
+   - Keep this terminal window open
+
+2. INSTALL DEPENDENCIES
+   - Open a new command prompt/terminal
+   - Navigate to the backend folder: cd backend
+   - Run: pip install -r requirements.txt
+
+3. INITIALIZE DATABASE
+   - Navigate to database folder: cd ..\database
+   - Run: python init_db.py
+   - This creates sample data and admin account
+
+4. START BACKEND SERVER
+   - Navigate to backend folder: cd ..\backend
+   - Run: python app.py
+   - Server will start on http://localhost:5000
+
+5. ACCESS THE WEBSITE
+   - Open your web browser
+   - Open: frontend\index.html
+   - Or visit: http://localhost:5000
+
+ALTERNATIVE - USE START.BAT (Windows):
+   - Ensure MongoDB is running (mongod)
+   - Double-click start.bat in the root folder
+   - This will automatically set up and start the system
+
+DEFAULT CREDENTIALS:
+
+Admin Login:
+   Username: admin
+   Password: admin123
+
+User Accounts:
+   Register a new account via the Register page
+
+TESTING THE SYSTEM:
+
+1. User Registration & Login:
+   - Go to Register page
+   - Create a new account
+   - Login with your credentials
+
+2. Browse Cars:
+   - Visit the Cars page
+   - Use filters to sort by category or price
+   - View car details
+
+3. Make a Booking:
+   - Click "Book Now" on any available car
+   - Select dates
+   - Enter license and ID card information
+   - Confirm booking
+
+4. Admin Dashboard:
+   - Click "Admin" in navigation
+   - Login with admin credentials
+   - View statistics and all bookings
+
+FEATURES:
+
+✓ User registration and authentication
+✓ Car browsing with filters
+✓ Real-time booking system
+✓ License and ID verification
+✓ Admin dashboard with statistics
+✓ Responsive design
+✓ Secure password hashing
+✓ JWT authentication
+✓ Real car images
+
+TROUBLESHOOTING:
+
+Problem: Cannot connect to MongoDB
+Solution: Ensure MongoDB is running (mongod command)
+
+Problem: Port 5000 already in use
+Solution: Stop other services using port 5000 or change port in app.py
+
+Problem: Module not found errors
+Solution: Install dependencies: pip install -r requirements.txt
+
+Problem: CORS errors in browser
+Solution: Ensure backend is running and accessible
+
+SUPPORT:
+Check README.md for detailed documentation

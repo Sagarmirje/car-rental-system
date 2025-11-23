@@ -1,0 +1,57 @@
+Car Rental System - MongoDB Database Schema
+=============================================
+
+Database Name: car_rental_db
+
+Collections:
+------------
+
+1. users
+   - _id: ObjectId (auto-generated)
+   - name: String
+   - email: String (unique)
+   - password: String (hashed)
+   - phone: String
+   - created_at: DateTime
+
+2. cars
+   - _id: ObjectId (auto-generated)
+   - name: String
+   - model: String
+   - category: String (Sedan, SUV, Sports, Electric)
+   - price_per_day: Number
+   - seats: Number
+   - transmission: String
+   - fuel_type: String
+   - image: String (URL)
+   - features: Array of Strings
+   - available: Boolean
+   - description: String
+
+3. bookings
+   - _id: ObjectId (auto-generated)
+   - user_id: String (reference to users._id)
+   - user_name: String
+   - user_email: String
+   - car_id: String (reference to cars._id)
+   - car_name: String
+   - car_model: String
+   - start_date: DateTime
+   - end_date: DateTime
+   - days: Number
+   - total_price: Number
+   - license_card: String
+   - id_card: String
+   - status: String (confirmed, completed, cancelled)
+   - created_at: DateTime
+
+4. admins
+   - _id: ObjectId (auto-generated)
+   - username: String (unique)
+   - password: String (hashed)
+   - created_at: DateTime
+
+Indexes:
+--------
+- users.email (unique)
+- admins.username (unique)
