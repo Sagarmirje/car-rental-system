@@ -11,7 +11,7 @@ services:
       - FLASK_ENV=production
     volumes:
       # Persist data directory for bookings/users
-      - car-rental-data:/app/Backend/data
+      - car-rental-data:/app/data
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/api/cars')"]
