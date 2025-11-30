@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  car-rental-app:
+    build: .
+    container_name: car-rental-system
+    ports:
+      - "5000:5000"
+    environment:
+      - PORT=5000
+      - FLASK_ENV=production
+    volumes:
+      # Persist data directory for bookings/users
+      - car-rental-data:/app/Backend/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/api/cars')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  car-rental-data:
+    driver: local

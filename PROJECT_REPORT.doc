@@ -1,0 +1,676 @@
+# Car Rental System - Project Report
+
+## Executive Summary
+
+This report outlines the **Car Rental System**, a full-stack web application enabling users to browse available vehicles, make reservations, and manage bookings. Built with Python Flask backend and vanilla JavaScript frontend, it ensures secure, real-time interactions with persistent JSON-based data storage.
+
+Key Features:
+- JWT authentication for secure user sessions
+- Responsive UI design for all devic
+- Real-time car availability tracking
+- Admin dashboard with statistics and reporting
+- License and ID card verification for bookings
+
+Deployment:
+- Live URL: https://car-rental-system-vmxn.onrender.com
+- Platform: Render (free tier)
+- Backend & Frontend: Single deployment serving both API and static files
+
+Tech Stack:
+- Backend: Python 3.11, Flask, bcrypt, PyJWT
+- Frontend: HTML5, CSS3, Vanilla JavaScript
+- Database: JSON file-based storage (cars.json, users.json, bookings.json, admins.json)
+
+Project Goals:
+Streamline car rental operations with user-friendly booking interface, admin oversight, persistent data storage, and secure authentication.
+
+---
+
+ 1. Project Structure Architecture
+
+# 1.1 Backend (Python + Flask)
+
+app.py: Entry point that initializes Flask application on port 5000 (or environment PORT), handles CORS, defines API routes, and serves frontend files.
+
+```
+Backend/
+├── app.py              # Main Flask application
+├── requirements.txt    # Python dependencies
+└── data/              # JSON storage directory
+    ├── cars.json      # Car inventory
+    ├── users.json     # User accounts
+    ├── bookings.json  # Rental bookings
+    └── admins.json    # Admin accounts
+```
+
+### 1.2 Data Models
+
+The system uses JSON-based storage with the following data structures:
+
+#### 1. User Model
+- **Fields:** _id, name, email, password (hashed), phone, created_at
+- **Purpose:** Store user account information
+- **Security:** Passwords encrypted with bcrypt
+
+#### 2. Car Model
+- Fields: _id, name, model, category, price_per_day, seats, transmission, fuel_type, image, features, available, description
+- Purpose: Represent available rental vehicles
+- Categories: Sedan, SUV, Sports, Electric
+
+#### 3. Booking Model
+- Fields: _id, user_id, user_name, user_email, car_id, car_name, car_model, start_date, end_date, days, total_price, license_card, id_card, status, created_at
+- Purpose: Track rental reservations
+- Statuses:*confirmed, completed, cancelled
+
+#### 4. Admin Model
+- Fields: _id, username, password (hashed), created_at
+- Purpose: Admin account management
+-*Default Admin: username: admin, password: admin123
+
+### 1.3 API Routes
+
+Authentication Routes (/api):
+- `POST /api/register` - Create new user accounts
+- `POST /api/login` - Authenticate users and generate JWT tokens
+- `POST /api/admin/login` - Admin authentication with separate JWT
+
+Car Routes (/api/cars):
+- `GET /api/cars` - Retrieve all available cars
+- `GET /api/cars/<car_id>` - Get specific car details
+
+Booking Routes (/api/bookings):
+- `POST /api/bookings` - Create new car rental booking (requires authentication)
+- `GET /api/bookings/user` - Get current user's booking history (requires authentication)
+
+*Admin Routes (/api/admin):
+- `GET /api/admin/bookings` - View all system bookings (requires admin auth)
+- `GET /api/admin/statistics` - Dashboard statistics including total users, cars, bookings, revenue (requires admin auth)
+
+Frontend Routes:
+- `GET /` - Serve homepage (index.html)
+- `GET /<path>` - Serve static frontend files (HTML, CSS, JS, images)
+
+### 1.4 Frontend (HTML + CSS + JavaScript)
+
+```
+Frontend/
+├── css/
+│   └── style.css              # Responsive styling
+├── js/
+│   ├── main.js                # Homepage functionality
+│   ├── auth.js                # User registration/login
+│   ├── cars.js                # Car browsing with filters
+│   ├── booking.js             # Booking form and validation
+│   ├── admin-auth.js          # Admin authentication
+│   └── admin-dashboard.js     # Admin statistics dashboard
+├── index.html                 # Homepage with featured cars
+├── register.html              # User registration
+├── login.html                 # User login
+├── cars.html                  # Browse all cars
+├── booking.html               # Car booking form
+├── admin-login.html           # Admin login
+└── admin-dashboard.html       # Admin dashboard
+```
+
+### 1.5 Deployment Configuration
+
+Files:
+- `render.yaml` - Render deployment configuration
+- `Procfile` - Process definition for Railway/Heroku
+- `runtime.txt` - Python version specification (3.11.0)
+- `.gitignore` - Exclude data files and cache from version control
+
+---
+
+## 2. Application Flow
+
+### 2.1 User Journey
+
+#### Step 1: User Registration
+New users navigate to the registration page and provide:
+- Full name
+- Email address
+- Phone number
+- Password (with confirmation)
+
+The system validates input, hashes the password using bcrypt, and creates a new user account in `users.json`.
+
+#### Step 2: User Login
+Registered users authenticate using:
+- Email
+- Password
+
+Upon successful authentication, the system:
+- Verifies credentials against stored hash
+- Generates JWT token with 24-hour expiration
+- Returns user profile and token
+- Frontend stores token in localStorage
+
+#### Step 3: Browse Available Cars
+Authenticated or guest users can:
+- View featured cars on homepage (3 cars)
+- Navigate to Cars page to see all vehicles
+- Filter by category (Sedan, SUV, Sports, Electric)
+- Filter by price range (Under $150, $150-$250, Over $250)
+- View detailed car information including features and specifications
+
+The system displays 7 sample cars including:
+- Tesla Model 3 (Electric) - $150/day
+- BMW X5 (SUV) - $200/day
+- Mercedes-Benz C-Class (Sedan) - $180/day
+- Audi A4 (Sedan) - $160/day
+- Toyota Camry (Hybrid Sedan) - $100/day
+- Honda CR-V (SUV) - $130/day
+- Porsche 911 (Sports) - $400/day
+
+#### Step 4: Car Booking Process
+Users select a car and proceed to booking:
+1. **Authentication Check:** System verifies user is logged in
+2. **Date Selection:** User selects start and end dates (minimum: today)
+3. **Price Calculation:** Real-time total price calculation based on days
+4. **License Verification:** User provides driver's license number
+5. **ID Verification:** User provides ID card number
+6. **Booking Confirmation:** System creates booking and updates car availability
+
+**Price Calculation Formula:**
+```
+Total Price = Price Per Day × Number of Days
+Number of Days = (End Date - Start Date) + 1
+```
+
+#### Step 5: Booking Confirmation
+Upon successful booking:
+- Booking record created in `bookings.json`
+- Car availability status updated to `available: false`
+- User receives confirmation with total price
+- Booking appears in user's booking history
+
+#### Step 6: View Booking History
+Users can view their past and current bookings showing:
+- Car details (name, model)
+- Rental dates
+- Duration in days
+- Total amount paid
+- Booking status
+
+### 2.2 Admin Journey
+
+#### Step 1: Admin Login
+Admin users access the admin panel:
+- Navigate to Admin Login page
+- Enter credentials (username: admin, password: admin123)
+- System generates admin JWT token
+- Redirect to admin dashboard
+
+#### Step 2: Admin Dashboard
+The dashboard displays key statistics:
+- **Total Users:** Count of registered users
+- **Total Cars:** Number of cars in inventory
+- **Total Bookings:** All-time booking count
+- **Available Cars:** Currently available for rent
+- **Total Revenue:** Sum of all booking amounts
+
+#### Step 3: View All Bookings
+Admin can access comprehensive booking list showing:
+- Booking ID
+- User information (name, email)
+- Car details (name, model)
+- Rental dates (start, end)
+- Duration
+- Total price
+- License card number
+- ID card number
+- Booking status
+
+This enables the admin to:
+- Track all reservations
+- Verify customer documentation
+- Monitor revenue
+- Manage car availability
+
+---
+
+## 3. Data Storage Schema
+
+### 3.1 User Schema (users.json)
+```json
+{
+  "_id": "unique-uuid",
+  "name": "John Doe",
+  "email": "john@example.com",
+  "password": "$2b$12$hashed_password_string",
+  "phone": "+1234567890",
+  "created_at": "2024-11-23T12:00:00.000Z"
+}
+```
+
+### 3.2 Car Schema (cars.json)
+```json
+{
+  "_id": "unique-uuid",
+  "name": "Tesla Model 3",
+  "model": "2024",
+  "category": "Electric",
+  "price_per_day": 150,
+  "seats": 5,
+  "transmission": "Automatic",
+  "fuel_type": "Electric",
+  "image": "https://images.unsplash.com/photo-url",
+  "features": ["GPS", "Bluetooth", "Backup Camera", "Autopilot"],
+  "available": true,
+  "description": "Experience the future of driving with the Tesla Model 3."
+}
+```
+
+### 3.3 Booking Schema (bookings.json)
+```json
+{
+  "_id": "unique-uuid",
+  "user_id": "user-uuid",
+  "user_name": "John Doe",
+  "user_email": "john@example.com",
+  "car_id": "car-uuid",
+  "car_name": "Tesla Model 3",
+  "car_model": "2024",
+  "start_date": "2024-11-25",
+  "end_date": "2024-11-27",
+  "days": 3,
+  "total_price": 450,
+  "license_card": "DL1234567890",
+  "id_card": "ID9876543210",
+  "status": "confirmed",
+  "created_at": "2024-11-23T12:00:00.000Z"
+}
+```
+
+### 3.4 Admin Schema (admins.json)
+```json
+{
+  "_id": "unique-uuid",
+  "username": "admin",
+  "password": "$2b$12$hashed_admin_password",
+  "created_at": "2024-11-23T12:00:00.000Z"
+}
+```
+
+---
+
+## 4. Security Features
+
+### 4.1 Password Security
+- **Bcrypt Hashing:** All passwords hashed with bcrypt (salt rounds: 12)
+- **No Plain Text Storage:** Passwords never stored in readable format
+- **Secure Comparison:** Password verification uses constant-time comparison
+
+### 4.2 Authentication
+- **JWT Tokens:** JSON Web Tokens for stateless authentication
+- **Token Expiration:** 24-hour token lifetime
+- **Separate Admin Tokens:** Different token payloads for users vs admins
+- **Authorization Headers:** Bearer token authentication for protected routes
+
+### 4.3 Route Protection
+- **Middleware Decorators:** `@token_required` and `@admin_token_required`
+- **Token Validation:** Verify signature and expiration on each request
+- **User Context:** Extract user data from valid tokens
+- **Unauthorized Access:** Return 401 for invalid/missing tokens
+
+### 4.4 CORS Configuration
+- **Cross-Origin Support:** Flask-CORS enabled
+- **API Access:** Allows frontend to communicate with backend
+- **Production Ready:** Configured for deployment environment
+
+---
+
+## 5. Responsive Design
+
+### 5.1 Mobile-First Approach
+- CSS Grid and Flexbox for flexible layouts
+- Responsive breakpoints: 768px (tablet), 480px (mobile)
+- Touch-friendly buttons and navigation
+- Optimized images and loading
+
+### 5.2 Design Features
+- **Modern Gradient Navbar:** Sticky navigation with smooth gradients
+- **Hero Section:** Full-width banner with call-to-action
+- **Card-Based Layout:** Consistent card design for cars and features
+- **Hover Effects:** Smooth transitions and shadows on interaction
+- **Form Validation:** Real-time input validation with error messages
+- **Loading States:** User feedback during API calls
+
+### 5.3 Color Scheme
+- **Primary:** #2563eb (Blue)
+- **Secondary:** #1e40af (Dark Blue)
+- **Success:** #10b981 (Green)
+- **Danger:** #ef4444 (Red)
+- **Warning:** #f59e0b (Orange)
+
+---
+
+## 6. Deployment Process
+
+### 6.1 Platform: Render
+
+**Deployment Steps:**
+1. Push code to GitHub repository
+2. Connect Render to GitHub account
+3. Create new Web Service on Render
+4. Configure build and start commands
+5. Deploy automatically on git push
+
+**Configuration:**
+- **Build Command:** `pip install -r Backend/requirements.txt`
+- **Start Command:** `cd Backend && python app.py`
+- **Python Version:** 3.11.0
+- **Port:** Environment variable (auto-assigned by Render)
+
+### 6.2 Environment Variables
+- `PORT`: Server port (provided by Render)
+- `SECRET_KEY`: JWT signing key (hardcoded, should use env var in production)
+
+### 6.3 Production Optimizations
+- Debug mode disabled (`debug=False`)
+- Host set to `0.0.0.0` for external access
+- Dynamic port binding from environment
+- CORS enabled for cross-origin requests
+
+---
+
+## 7. Features Summary
+
+### 7.1 User Features
+✅ User registration with validation  
+✅ Secure login with JWT authentication  
+✅ Browse cars with real-time images  
+✅ Filter by category and price range  
+✅ Detailed car information display  
+✅ Multi-day booking system  
+✅ Real-time price calculation  
+✅ License and ID card verification  
+✅ Booking history tracking  
+✅ Responsive mobile-friendly design  
+
+### 7.2 Admin Features
+✅ Separate admin authentication  
+✅ Dashboard with key statistics  
+✅ View all system bookings  
+✅ Access customer documentation  
+✅ Revenue tracking  
+✅ User and car count monitoring  
+
+### 7.3 Technical Features
+✅ RESTful API architecture  
+✅ JWT token-based authentication  
+✅ Password encryption with bcrypt  
+✅ JSON file-based persistence  
+✅ CORS-enabled backend  
+✅ Responsive CSS design  
+✅ Client-side routing  
+✅ Dynamic content loading  
+✅ Form validation  
+✅ Error handling  
+
+---
+
+## 8. Sample Data
+
+The system initializes with 7 pre-configured cars:
+
+| Car | Category | Price/Day | Seats | Features |
+|-----|----------|-----------|-------|----------|
+| Tesla Model 3 | Electric | $150 | 5 | GPS, Bluetooth, Autopilot |
+| BMW X5 | SUV | $200 | 7 | Leather Seats, Sunroof, AWD |
+| Mercedes-Benz C-Class | Sedan | $180 | 5 | Premium Sound, Heated Seats |
+| Audi A4 | Sedan | $160 | 5 | Cruise Control, LED Lights |
+| Toyota Camry | Sedan | $100 | 5 | Fuel Efficient, Backup Camera |
+| Honda CR-V | SUV | $130 | 5 | Apple CarPlay, Safety Features |
+| Porsche 911 | Sports | $400 | 2 | High Performance, Sport Mode |
+
+**Default Admin Account:**
+- Username: `admin`
+- Password: `admin123`
+
+---
+
+## 9. Future Enhancements
+
+### 9.1 Planned Features
+- Payment gateway integration (Stripe/PayPal)
+- Email notifications for bookings
+- SMS reminders for pickup dates
+- Review and rating system
+- Advanced search filters (year, mileage, color)
+- Car comparison feature
+- Loyalty points program
+- Multi-language support
+
+### 9.2 Technical Improvements
+- Migration to MongoDB Atlas for persistent cloud storage
+- Redis caching for improved performance
+- CDN integration for faster image loading
+- Automated testing suite
+- API rate limiting
+- Enhanced security with environment variables
+- Docker containerization
+- CI/CD pipeline with GitHub Actions
+
+### 9.3 Business Features
+- Dynamic pricing based on demand
+- Seasonal promotions
+- Corporate booking packages
+- Insurance options
+- GPS tracking for rented vehicles
+- Damage reporting system
+- Mobile application (iOS/Android)
+
+---
+
+## 10. Conclusion
+
+The Car Rental System successfully delivers a complete, production-ready web application for managing car rentals. With secure authentication, intuitive user interface, and comprehensive admin tools, it provides a solid foundation for a real-world car rental business.
+
+**Key Achievements:**
+- ✅ Fully functional booking system deployed to cloud
+- ✅ Secure user authentication with JWT
+- ✅ Responsive design for all devices
+- ✅ Admin dashboard with real-time statistics
+- ✅ Persistent data storage
+- ✅ Professional UI/UX design
+
+**Live Application:** https://car-rental-system-vmxn.onrender.com
+
+**Repository Structure:**
+- Clean, organized codebase
+- Separation of concerns (Frontend/Backend/Database)
+- Ready for version control and collaboration
+- Scalable architecture for future growth
+
+This project demonstrates proficiency in full-stack web development, API design, security best practices, and cloud deployment.
+
+---
+
+## Appendix A: Installation Guide
+
+### Local Development Setup
+
+**Prerequisites:**
+- Python 3.11 or higher
+- Git
+- Modern web browser
+
+**Steps:**
+1. Clone repository
+2. Install dependencies: `pip install -r Backend/requirements.txt`
+3. Run application: `cd Backend && python app.py`
+4. Access at: `http://localhost:5000`
+
+### Cloud Deployment
+
+**Platform:** Render (free tier)
+
+**Steps:**
+1. Push code to GitHub
+2. Create Render account
+3. Connect GitHub repository
+4. Configure build/start commands
+5. Deploy with one click
+
+---
+
+## Appendix B: API Documentation
+
+### Authentication Endpoints
+
+**Register User**
+```
+POST /api/register
+Body: {
+  "name": "John Doe",
+  "email": "john@example.com",
+  "phone": "+1234567890",
+  "password": "securepass123"
+}
+Response: {
+  "message": "User registered successfully",
+  "user_id": "uuid"
+}
+```
+
+**User Login**
+```
+POST /api/login
+Body: {
+  "email": "john@example.com",
+  "password": "securepass123"
+}
+Response: {
+  "token": "jwt-token-string",
+  "user": {
+    "id": "uuid",
+    "name": "John Doe",
+    "email": "john@example.com"
+  }
+}
+```
+
+**Admin Login**
+```
+POST /api/admin/login
+Body: {
+  "username": "admin",
+  "password": "admin123"
+}
+Response: {
+  "token": "admin-jwt-token",
+  "admin": {
+    "id": "uuid",
+    "username": "admin"
+  }
+}
+```
+
+### Car Endpoints
+
+**Get All Cars**
+```
+GET /api/cars
+Response: [
+  {
+    "_id": "uuid",
+    "name": "Tesla Model 3",
+    "model": "2024",
+    "category": "Electric",
+    "price_per_day": 150,
+    ...
+  }
+]
+```
+
+**Get Single Car**
+```
+GET /api/cars/{car_id}
+Response: {
+  "_id": "uuid",
+  "name": "Tesla Model 3",
+  ...
+}
+```
+
+### Booking Endpoints
+
+**Create Booking** (Requires Authentication)
+```
+POST /api/bookings
+Headers: {
+  "Authorization": "Bearer jwt-token"
+}
+Body: {
+  "car_id": "uuid",
+  "start_date": "2024-11-25",
+  "end_date": "2024-11-27",
+  "license_card": "DL1234567890",
+  "id_card": "ID9876543210"
+}
+Response: {
+  "message": "Booking created successfully",
+  "booking_id": "uuid",
+  "total_price": 450
+}
+```
+
+**Get User Bookings** (Requires Authentication)
+```
+GET /api/bookings/user
+Headers: {
+  "Authorization": "Bearer jwt-token"
+}
+Response: [
+  {
+    "_id": "uuid",
+    "car_name": "Tesla Model 3",
+    "start_date": "2024-11-25",
+    "total_price": 450,
+    ...
+  }
+]
+```
+
+### Admin Endpoints
+
+**Get All Bookings** (Requires Admin Auth)
+```
+GET /api/admin/bookings
+Headers: {
+  "Authorization": "Bearer admin-jwt-token"
+}
+Response: [
+  {
+    "_id": "uuid",
+    "user_name": "John Doe",
+    "car_name": "Tesla Model 3",
+    "license_card": "DL1234567890",
+    ...
+  }
+]
+```
+
+**Get Statistics** (Requires Admin Auth)
+```
+GET /api/admin/statistics
+Headers: {
+  "Authorization": "Bearer admin-jwt-token"
+}
+Response: {
+  "total_users": 15,
+  "total_cars": 7,
+  "total_bookings": 42,
+  "available_cars": 5,
+  "total_revenue": 8750,
+  "recent_bookings": [...]
+}
+```
+
+---
+
+**Report Generated:** November 24, 2025  
+**Project Status:** Deployed and Operational  
+**Live URL:** https://car-rental-system-vmxn.onrender.com
